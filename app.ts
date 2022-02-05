@@ -63,13 +63,14 @@ interface NewsComment extends News {
 const container: HTMLElement | null = document.getElementById('root');
 const ajax: XMLHttpRequest = new XMLHttpRequest();
 const NEWS_URL = 'https://api.hnpwa.com/v0/news/1.json';
-const CONTENT_RUL = 'https://api.hnpwa.com/v0/item/@id.json';
+const CONTENT_URL = 'https://api.hnpwa.com/v0/item/@id.json';
 const store: Store = {
   currentPage: 1,
   feeds: [],
 }
 
 // class를 이용한 공통요소 상속
+/*
 class Api {
   url: string;
   ajax: XMLHttpRequest;
@@ -98,6 +99,47 @@ class NewsDetailApi extends Api {
     return this.getRequest<NewsDetail[]>();
   }
 }
+*/
+
+// class & mixin 기법을 이용한 공통요소 상속
+function applyApiMixins(targetClass: any, baseClasses: any[]): void {
+  baseClasses.forEach(baseClass => {
+    Object.getOwnPropertyNames(baseClass.prototype).forEach(name => {
+      const descriptor = Object.getOwnPropertyDescriptor(baseClass.prototype, name);
+
+      if (descriptor) {
+        Object.defineProperty(targetClass.prototype, name, descriptor);
+      }
+    });
+  });
+}
+class Api {
+  getRequest<APIResponse>(url: string): APIResponse {
+    const ajax = new XMLHttpRequest();
+    ajax.open('GET', url, false); // async = false 동기처리
+    ajax.send();
+  
+    return JSON.parse(ajax.response);
+  }
+}
+
+class NewsFeedApi {
+  getData(): NewsFeed[] {
+    return this.getRequest<NewsFeed[]>(NEWS_URL);
+  }
+}
+
+class NewsDetailApi {
+  getData(id: string): NewsDetail {
+    return this.getRequest<NewsDetail>(CONTENT_URL.replace('@id', id));
+  }
+}
+
+interface NewsFeedApi extends Api {};
+interface NewsDetailApi extends Api {};
+
+applyApiMixins(NewsFeedApi, [Api]);
+applyApiMixins(NewsDetailApi, [Api]);
 
 function makeFeeds(feeds: NewsFeed[]): NewsFeed[] {
   for (let i = 0; i < feeds.length; i++) {
@@ -117,7 +159,7 @@ function updateView(html: string): void {
 
 // 글 목록
 function newsFeed(): void {
-  const api = new NewsFeedApi(NEWS_URL);
+  const api = new NewsFeedApi();
   let newsFeed: NewsFeed[] = store.feeds;
   const newsList = [];
   let template = `
@@ -179,8 +221,8 @@ const ul = document.createElement('ul');
 // 글 상세
 function newsDetail() {
   const id = location.hash.substring(7);
-  const api = new NewsDetailApi(CONTENT_RUL.replace('@id', id));
-  const newsContent = api.getData();
+  const api = new NewsDetailApi();
+  const newsContent = api.getData(id);
   let template = `
     <div class="bg-gray-600 min-h-screen pb-8">
       <div class="bg-white text-xl">
