@@ -1,0 +1,22 @@
+
+###
+POST https://lms.koreapolyschool.com/tlesif/TT/API/users/login HTTP/1.1
+Content-Type: application/json
+Accept: application/json
+
+{
+	"web_id" : "test_basic",
+	"password" : "test_basic",
+	"client_code" : "0508003"
+}
+
+###
+POST https://lms.koreapolyschool.com/tlesif/TT/API/tables/class-curriculums HTTP/1.1
+content-type: application/json
+Accept: application/json
+DTTT_AUTH: VW0HZypM2ItO3fmZYIC28J0j308t6Y9gGvf7L0bhuJhLCH8zRZYVehxPlYr4CX4MzK1vcx3C+CscDSF+0wFocFX549yOtZF/79HzI5SQcmMJZq00RgbEe0Y0qJ7dX9JgyXe1E/SoD/oAYxR8AVkTKNgbgOib6xr85y7RHuinPhY=
+
+{
+	"client_code" : "0508003",
+	"class_code" : "2201002"
+}
